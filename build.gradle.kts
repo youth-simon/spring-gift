@@ -23,10 +23,13 @@ repositories {
 dependencies {
     implementation("org.springframework.boot:spring-boot-h2console")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("tools.jackson.module:jackson-module-kotlin")
+    implementation("org.springframework.boot:spring-boot-starter-flyway")
+    runtimeOnly("org.flywaydb:flyway-mysql")
     runtimeOnly("com.h2database:h2")
     testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
     testImplementation("org.springframework.boot:spring-boot-starter-validation-test")
@@ -57,6 +60,9 @@ tasks.test {
     useJUnitPlatform {
         excludeTags("e2e")
     }
+    // Tests manage their own schema; Flyway/seed data is for runtime only.
+    systemProperty("spring.flyway.enabled", "false")
+    systemProperty("spring.jpa.hibernate.ddl-auto", "create-drop")
 }
 
 val e2eTest by tasks.registering(Test::class) {
