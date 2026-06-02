@@ -14,7 +14,9 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.domain.Pageable
 import org.springframework.transaction.annotation.Transactional
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 @SpringBootTest
 @Transactional
@@ -47,16 +49,20 @@ class WishServiceTest {
 
     @Test
     fun `add creates a new wish when none exists`() {
-        val wish = wishService.add(memberId, productId, quantity = 2)
+        val result = wishService.add(memberId, productId, quantity = 2)
 
-        assertEquals(2, wish.quantity)
-        assertEquals(memberId, wish.member.id)
+        assertTrue(result.created)
+        assertEquals(2, result.wish.quantity)
+        assertEquals(memberId, result.wish.member.id)
     }
 
     @Test
     fun `add increases quantity when wish already exists for same product`() {
-        wishService.add(memberId, productId, quantity = 2)
-        wishService.add(memberId, productId, quantity = 3)
+        val first = wishService.add(memberId, productId, quantity = 2)
+        val second = wishService.add(memberId, productId, quantity = 3)
+
+        assertTrue(first.created)
+        assertFalse(second.created)
 
         val wishes = wishService.listOf(memberId, Pageable.unpaged()).content
         assertEquals(1, wishes.size)
@@ -65,12 +71,12 @@ class WishServiceTest {
 
     @Test
     fun `changeQuantity is denied for a different member`() {
-        val wish = wishService.add(memberId, productId, quantity = 1)
+        val result = wishService.add(memberId, productId, quantity = 1)
 
         val otherMember = memberRepository.save(Member.fromKakao(kakaoId = 888, email = "v@x", name = "v"))
 
         assertThrows<UnauthorizedException> {
-            wishService.changeQuantity(otherMember.id!!, wish.id!!, quantity = 9)
+            wishService.changeQuantity(otherMember.id!!, result.wish.id!!, quantity = 9)
         }
     }
 

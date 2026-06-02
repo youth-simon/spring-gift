@@ -55,8 +55,8 @@ class WishActivityListenerTest {
 
     @Test
     fun `change quantity publishes WishQuantityChanged`() {
-        val wish = wishService.add(memberId, productId, quantity = 1)
-        wishService.changeQuantity(memberId, wish.id!!, quantity = 9)
+        val result = wishService.add(memberId, productId, quantity = 1)
+        wishService.changeQuantity(memberId, result.wish.id!!, quantity = 9)
 
         val activities = activityRepository.findAllByMemberIdOrderByOccurredAtDesc(memberId)
         assertEquals(2, activities.size)

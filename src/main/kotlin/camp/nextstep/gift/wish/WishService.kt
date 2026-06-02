@@ -33,22 +33,18 @@ class WishService(
         memberId: Long,
         productId: Long,
         quantity: Int,
-    ): Wish {
+    ): WishUpsert {
         val member = loadMember(memberId)
         val product = loadProduct(productId)
 
         val existing = wishRepository.findByMemberIdAndProductId(memberId, productId)
-        val saved =
-            if (existing != null) {
-                existing.increase(quantity)
-                existing
-            } else {
-                wishRepository.save(Wish.create(member, product, quantity))
-            }
+        val wish =
+            existing?.apply { increase(quantity) }
+                ?: wishRepository.save(Wish.create(member, product, quantity))
         events.publishEvent(
             WishAdded(memberId, productId, quantity, isNew = existing == null, occurredAt = now()),
         )
-        return saved
+        return WishUpsert(wish, created = existing == null)
     }
 
     @Transactional
@@ -87,3 +83,12 @@ class WishService(
 
     private fun loadWish(id: Long): Wish = wishRepository.findById(id).orElseThrow { NotFoundException("wish not found: $id") }
 }
+
+/**
+ * 위시 upsert 결과. created=true 면 신규 생성, false 면 기존 항목의 수량 증가다.
+ * 컨트롤러가 201 Created 와 200 OK 를 구분해 응답하기 위해 사용한다.
+ */
+data class WishUpsert(
+    val wish: Wish,
+    val created: Boolean,
+)

@@ -32,9 +32,13 @@ class WishController(
         @LoginMember memberId: Long,
         @Valid @RequestBody request: WishCreateRequest,
     ): ResponseEntity<WishResponse> {
-        val wish = wishService.add(memberId, request.productId, request.quantity)
-        val location = URI.create("/api/wishes/${wish.id}")
-        return ResponseEntity.created(location).body(WishResponse.from(wish))
+        val result = wishService.add(memberId, request.productId, request.quantity)
+        val body = WishResponse.from(result.wish)
+        return if (result.created) {
+            ResponseEntity.created(URI.create("/api/wishes/${result.wish.id}")).body(body)
+        } else {
+            ResponseEntity.ok(body)
+        }
     }
 
     @PatchMapping("/{id}")

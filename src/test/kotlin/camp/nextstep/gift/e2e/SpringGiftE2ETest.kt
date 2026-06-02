@@ -113,7 +113,9 @@ class SpringGiftE2ETest : MySqlIntegrationTest() {
                 token = accessToken,
                 body = mapOf("productId" to productId, "quantity" to 2),
             )
-        assertEquals(201, wishUpsert.statusCode())
+        assertEquals(200, wishUpsert.statusCode())
+        val wishUpsertBody: Map<String, Any> = mapper.readValue(wishUpsert.body())
+        assertEquals(3, (wishUpsertBody["quantity"] as Number).toInt())
 
         val wishes = wishRepository.findAllByMemberId(memberId, Pageable.unpaged()).content
         assertEquals(1, wishes.size)
