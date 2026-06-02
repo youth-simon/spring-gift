@@ -141,6 +141,10 @@ class SpringGiftE2ETest : MySqlIntegrationTest() {
         val delete = call("DELETE", "/api/wishes/products/$productId", token = accessToken)
         assertEquals(204, delete.statusCode())
         assertNull(wishRepository.findByMemberIdAndProductId(memberId, productId))
+
+        // 멱등 삭제: 이미 없는 위시를 다시 삭제해도 204
+        val deleteAgain = call("DELETE", "/api/wishes/products/$productId", token = accessToken)
+        assertEquals(204, deleteAgain.statusCode())
     }
 
     @Test

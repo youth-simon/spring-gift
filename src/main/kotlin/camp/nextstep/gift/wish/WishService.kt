@@ -68,11 +68,11 @@ class WishService(
         memberId: Long,
         productId: Long,
     ) {
+        // 멱등 삭제: 지울 대상이 없어도 성공으로 취급한다. 재시도해도 같은 결과(204)가 되도록.
         val deleted = wishRepository.deleteByMemberIdAndProductId(memberId, productId)
-        if (deleted == 0L) {
-            throw NotFoundException("wish not found: member=$memberId, product=$productId")
+        if (deleted > 0L) {
+            events.publishEvent(WishRemoved(memberId, productId, occurredAt = now()))
         }
-        events.publishEvent(WishRemoved(memberId, productId, occurredAt = now()))
     }
 
     private fun now(): Instant = Instant.now(clock)

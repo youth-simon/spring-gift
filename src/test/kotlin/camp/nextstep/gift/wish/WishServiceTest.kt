@@ -1,6 +1,5 @@
 package camp.nextstep.gift.wish
 
-import camp.nextstep.gift.common.NotFoundException
 import camp.nextstep.gift.common.UnauthorizedException
 import camp.nextstep.gift.member.Member
 import camp.nextstep.gift.member.MemberRepository
@@ -8,6 +7,7 @@ import camp.nextstep.gift.product.Product
 import camp.nextstep.gift.product.ProductRepository
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -90,8 +90,8 @@ class WishServiceTest {
     }
 
     @Test
-    fun `remove fails when the wish does not exist`() {
-        assertThrows<NotFoundException> {
+    fun `remove is idempotent when the wish does not exist`() {
+        assertDoesNotThrow {
             wishService.remove(memberId, productId)
         }
     }
