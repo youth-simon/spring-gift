@@ -12,7 +12,7 @@ import jakarta.persistence.Index
 import jakarta.persistence.Table
 import java.time.Instant
 
-enum class WishActivityType { ADDED, QUANTITY_CHANGED, REMOVED }
+enum class WishActivityType { ADDED, QUANTITY_INCREASED, QUANTITY_CHANGED, REMOVED }
 
 @Entity
 @Table(
@@ -62,6 +62,14 @@ class WishActivity protected constructor(
             quantity: Int,
             at: Instant,
         ): WishActivity = WishActivity(memberId, productId, WishActivityType.ADDED, quantity, at)
+
+        /** 이미 위시에 있던 상품을 다시 추가해 수량이 누적된 경우. quantity 는 증가분이다. */
+        fun quantityIncreased(
+            memberId: Long,
+            productId: Long,
+            addedQuantity: Int,
+            at: Instant,
+        ): WishActivity = WishActivity(memberId, productId, WishActivityType.QUANTITY_INCREASED, addedQuantity, at)
 
         fun quantityChanged(
             memberId: Long,

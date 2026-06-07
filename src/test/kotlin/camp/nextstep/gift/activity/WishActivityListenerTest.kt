@@ -54,6 +54,17 @@ class WishActivityListenerTest {
     }
 
     @Test
+    fun `re-adding an existing product records QUANTITY_INCREASED, not ADDED`() {
+        wishService.add(memberId, productId, quantity = 2)
+        wishService.add(memberId, productId, quantity = 3)
+
+        val activities = activityRepository.findAllByMemberIdOrderByOccurredAtDesc(memberId)
+        assertEquals(2, activities.size)
+        assertEquals(WishActivityType.QUANTITY_INCREASED, activities.first().type)
+        assertEquals(3, activities.first().quantity)
+    }
+
+    @Test
     fun `change quantity publishes WishQuantityChanged`() {
         val result = wishService.add(memberId, productId, quantity = 1)
         wishService.changeQuantity(memberId, result.wish.id!!, quantity = 9)

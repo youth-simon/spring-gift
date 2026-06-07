@@ -16,7 +16,13 @@ class WishActivityListener(
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     fun onAdded(event: WishAdded) {
-        repository.save(WishActivity.added(event.memberId, event.productId, event.quantity, event.occurredAt))
+        val activity =
+            if (event.isNew) {
+                WishActivity.added(event.memberId, event.productId, event.quantity, event.occurredAt)
+            } else {
+                WishActivity.quantityIncreased(event.memberId, event.productId, event.quantity, event.occurredAt)
+            }
+        repository.save(activity)
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
