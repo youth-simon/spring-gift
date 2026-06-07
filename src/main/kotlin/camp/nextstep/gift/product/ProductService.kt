@@ -36,6 +36,7 @@ class ProductService(
         product.rename(command.name)
         product.changePrice(command.price)
         product.replaceStock(command.stock)
+        product.changeImageUrl(command.imageUrl)
         return product
     }
 

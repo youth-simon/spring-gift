@@ -58,6 +58,11 @@ class Product protected constructor(
         this.stock = newStock
     }
 
+    fun changeImageUrl(newImageUrl: String) {
+        require(newImageUrl.isNotBlank()) { "imageUrl must not be blank" }
+        this.imageUrl = newImageUrl
+    }
+
     fun decreaseStock(quantity: Int) {
         require(quantity > 0) { "quantity must be positive" }
         if (stock < quantity) {

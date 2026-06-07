@@ -54,4 +54,22 @@ class ProductTest {
         assertTrue(product.isAvailable(2))
         assertFalse(product.isAvailable(3))
     }
+
+    @Test
+    fun `changeImageUrl updates the image url`() {
+        val product = Product.create(name = "americano", price = 4500, imageUrl = "http://old", stock = 1)
+
+        product.changeImageUrl("http://new")
+
+        assertEquals("http://new", product.imageUrl)
+    }
+
+    @Test
+    fun `changeImageUrl rejects blank url`() {
+        val product = Product.create(name = "americano", price = 4500, imageUrl = "http://x", stock = 1)
+
+        assertThrows<IllegalArgumentException> {
+            product.changeImageUrl(" ")
+        }
+    }
 }
