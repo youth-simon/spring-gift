@@ -58,4 +58,43 @@ class JwtProviderTest {
 
         assertThrows<UnauthorizedException> { provider.parse("not-a-jwt") }
     }
+
+    @Test
+    fun `token with unexpected alg header is rejected even when signed correctly`() {
+        val provider = providerAt(Instant.parse("2026-01-01T00:00:00Z"))
+        val forged =
+            forgeToken(
+                header = mapOf("alg" to "HS512", "typ" to "JWT"),
+                payload = mapOf("sub" to "7", "exp" to Instant.parse("2026-01-01T01:00:00Z").epochSecond),
+            )
+
+        assertThrows<UnauthorizedException> { provider.parse(forged) }
+    }
+
+    @Test
+    fun `token with unexpected typ header is rejected even when signed correctly`() {
+        val provider = providerAt(Instant.parse("2026-01-01T00:00:00Z"))
+        val forged =
+            forgeToken(
+                header = mapOf("alg" to "HS256", "typ" to "JWE"),
+                payload = mapOf("sub" to "7", "exp" to Instant.parse("2026-01-01T01:00:00Z").epochSecond),
+            )
+
+        assertThrows<UnauthorizedException> { provider.parse(forged) }
+    }
+
+    // 서명은 provider 의 secret 으로 올바르게 만든 뒤 헤더만 바꾼 토큰. signature 검증은 통과하고 alg/typ 검증에서 걸려야 한다.
+    private fun forgeToken(
+        header: Map<String, Any>,
+        payload: Map<String, Any>,
+    ): String {
+        val encoder = java.util.Base64.getUrlEncoder().withoutPadding()
+        val headerEncoded = encoder.encodeToString(objectMapper.writeValueAsBytes(header))
+        val payloadEncoded = encoder.encodeToString(objectMapper.writeValueAsBytes(payload))
+        val signingInput = "$headerEncoded.$payloadEncoded"
+        val mac = javax.crypto.Mac.getInstance("HmacSHA256")
+        mac.init(javax.crypto.spec.SecretKeySpec(secret.toByteArray(), "HmacSHA256"))
+        val signature = encoder.encodeToString(mac.doFinal(signingInput.toByteArray()))
+        return "$signingInput.$signature"
+    }
 }

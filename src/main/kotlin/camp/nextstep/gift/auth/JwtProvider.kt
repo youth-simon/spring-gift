@@ -17,7 +17,7 @@ class JwtProvider(
 ) {
     fun issue(memberId: Long): String {
         val now = Instant.now(clock)
-        val header = mapOf("alg" to ALG, "typ" to "JWT")
+        val header = mapOf("alg" to ALG, "typ" to TYP)
         val payload =
             mapOf(
                 "sub" to memberId.toString(),
@@ -41,6 +41,11 @@ class JwtProvider(
         if (!constantTimeEquals(expectedSignature, signaturePart)) {
             throw UnauthorizedException("invalid signature")
         }
+
+        @Suppress("UNCHECKED_CAST")
+        val header = objectMapper.readValue(decode(headerPart), Map::class.java) as Map<String, Any>
+        if (header["alg"] != ALG) throw UnauthorizedException("unexpected alg")
+        if (header["typ"] != TYP) throw UnauthorizedException("unexpected typ")
 
         @Suppress("UNCHECKED_CAST")
         val payload = objectMapper.readValue(decode(payloadPart), Map::class.java) as Map<String, Any>
@@ -78,6 +83,7 @@ class JwtProvider(
 
     companion object {
         private const val ALG = "HS256"
+        private const val TYP = "JWT"
         private const val MAC_ALG = "HmacSHA256"
     }
 }
